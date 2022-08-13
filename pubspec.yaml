@@ -33,6 +33,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.0.0-dev.9
+  flutter_signin_button:
   freezed_annotation:
   gap:
   go_router:
