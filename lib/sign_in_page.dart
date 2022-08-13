@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
@@ -18,7 +19,19 @@ class SignInPage extends ConsumerWidget {
             onPressed: () async {
               final googleSignIn = GoogleSignIn(
                 clientId:
+                    // ignore: lines_longer_than_80_chars
                     '624229075561-i2hacdfbgvhq5aqv03dfgm9jcsbcbtml.apps.googleusercontent.com',
+              );
+              final account = await googleSignIn.signIn();
+              final auth = await account?.authentication;
+              if (auth == null) {
+                return;
+              }
+              await FirebaseAuth.instance.signInWithCredential(
+                GoogleAuthProvider.credential(
+                  idToken: auth.idToken,
+                  accessToken: auth.accessToken,
+                ),
               );
             },
           ),

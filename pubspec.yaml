@@ -34,19 +34,14 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^2.0.0-dev.9
   flutter_signin_button:
-  freezed_annotation:
   gap:
   go_router:
   google_sign_in:
-  intersperse:
   simple_logger:
 
 dev_dependencies:
-  build_runner:
   flutter_test:
     sdk: flutter
-  freezed:
-  json_serializable:
   pedantic_mono:
 
 
