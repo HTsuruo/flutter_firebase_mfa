@@ -24,7 +24,7 @@ Future<void> main() async {
   final isDefined = DotEnv().isDefined('CLIENT_ID');
   assert(
     !isDefined,
-    'Plesae set your `CLIENT_ID` for google_sign_in in `.env`',
+    'Please set your `CLIENT_ID` for google_sign_in in `.env`',
   );
 
   // Webブラウザ表示時のURLから`#`を取り除く
