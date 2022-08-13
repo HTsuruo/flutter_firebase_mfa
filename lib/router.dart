@@ -6,6 +6,7 @@ import 'package:flutter_firebase_mfa/home_page.dart';
 import 'package:flutter_firebase_mfa/sign_in_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 const _signInPath = '/sign_in';
 
@@ -24,7 +25,6 @@ final routerProvider = Provider(
         builder: (context, state) => const SignInPage(),
       ),
     ],
-    // redirect to the login page if the user is not logged in
     redirect: (state) {
       final signedIn = ref.read(_authRefreshListener).signedIn;
       if (!signedIn) {
@@ -34,6 +34,9 @@ final routerProvider = Provider(
     },
     // ref. https://github.com/rrousselGit/riverpod/issues/884
     refreshListenable: ref.watch(_authRefreshListener),
+    navigatorBuilder: (context, state, child) => ProgressHUD(
+      child: child,
+    ),
   ),
 );
 

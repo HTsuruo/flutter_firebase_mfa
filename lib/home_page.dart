@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 final signedInProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -25,13 +26,13 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends ConsumerWidget {
   const _Body({required this.user});
 
   final User user;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final values = <String, String?>{
       'uid': user.uid,
       'displayName': user.displayName,
@@ -57,7 +58,9 @@ class _Body extends StatelessWidget {
         ),
         ElevatedButton(
           onPressed: () async {
-            await FirebaseAuth.instance.signOut();
+            await ref.read(progressController).executeWithProgress(
+                  () => FirebaseAuth.instance.signOut(),
+                );
           },
           child: const Text('Sign out'),
         )

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 class SignInPage extends ConsumerWidget {
   const SignInPage({super.key});
@@ -27,12 +28,14 @@ class SignInPage extends ConsumerWidget {
               if (auth == null) {
                 return;
               }
-              await FirebaseAuth.instance.signInWithCredential(
-                GoogleAuthProvider.credential(
-                  idToken: auth.idToken,
-                  accessToken: auth.accessToken,
-                ),
-              );
+              await ref.read(progressController).executeWithProgress(
+                    () => FirebaseAuth.instance.signInWithCredential(
+                      GoogleAuthProvider.credential(
+                        idToken: auth.idToken,
+                        accessToken: auth.accessToken,
+                      ),
+                    ),
+                  );
             },
           ),
         ),
