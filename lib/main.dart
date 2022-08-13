@@ -1,4 +1,3 @@
-import 'package:dotenv/dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,12 +18,6 @@ Future<void> main() async {
   logger.setLevel(
     Level.FINEST,
     includeCallerInfo: kDebugMode,
-  );
-
-  final isDefined = DotEnv().isDefined('CLIENT_ID');
-  assert(
-    !isDefined,
-    'Please set your `CLIENT_ID` for google_sign_in in `.env`',
   );
 
   // Webブラウザ表示時のURLから`#`を取り除く

@@ -16,7 +16,10 @@ class SignInPage extends ConsumerWidget {
           child: SignInButton(
             Buttons.Google,
             onPressed: () async {
-              final googleSignIn = GoogleSignIn();
+              final googleSignIn = GoogleSignIn(
+                clientId:
+                    '624229075561-i2hacdfbgvhq5aqv03dfgm9jcsbcbtml.apps.googleusercontent.com',
+              );
             },
           ),
         ),
