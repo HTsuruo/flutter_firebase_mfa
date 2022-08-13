@@ -34,6 +34,7 @@ dependencies:
   freezed_annotation:
   gap:
   go_router:
+  google_sign_in:
   intersperse:
   simple_logger:
 
