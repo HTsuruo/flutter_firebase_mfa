@@ -26,7 +26,7 @@ final routerProvider = Provider(
     ],
     // redirect to the login page if the user is not logged in
     redirect: (state) {
-      final signedIn = ref.watch(_authRefreshListener).signedIn;
+      final signedIn = ref.read(_authRefreshListener).signedIn;
       if (!signedIn) {
         return state.subloc == _signInPath ? null : _signInPath;
       }
