@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class SignInPage extends ConsumerWidget {
   const SignInPage({super.key});
@@ -14,7 +15,9 @@ class SignInPage extends ConsumerWidget {
           height: 44,
           child: SignInButton(
             Buttons.Google,
-            onPressed: () {},
+            onPressed: () async {
+              final googleSignIn = GoogleSignIn();
+            },
           ),
         ),
       ),
