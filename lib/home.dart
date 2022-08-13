@@ -16,3 +16,30 @@ class HomePage extends ConsumerWidget {
     );
   }
 }
+
+// class _ListTile extends StatelessWidget {
+//   const _ListTile({
+//     super.key,
+//     required this.title,
+//     required this.value,
+//   });
+
+//   final String title;
+//   final String? value;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final theme = Theme.of(context);
+//     final colorScheme = theme.colorScheme;
+//     return ListTile(
+//       visualDensity: VisualDensity.compact,
+//       title: Text(title),
+//       trailing: Text(
+//         value ?? '---',
+//         style: theme.textTheme.bodyText2!.copyWith(
+//           color: value == null ? theme.disabledColor : colorScheme.primary,
+//         ),
+//       ),
+//     );
+//   }
+// }
