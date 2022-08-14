@@ -20,14 +20,10 @@ final routerProvider = Provider((ref) {
 // ref. https://github.com/lucavenir/go_router_riverpod/blob/master/lib/router.dart
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
-    _ref.listen<User?>(userProvider.select((userAsync) => userAsync.value),
-        (previous, user) {
-      //不要な変更を間引く
-      if (previous == user) {
-        return;
-      }
-      notifyListeners();
-    });
+    _ref.listen<User?>(
+      userProvider.select((userAsync) => userAsync.value),
+      (_, __) => notifyListeners(),
+    );
   }
 
   final Ref _ref;
