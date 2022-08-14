@@ -54,7 +54,8 @@ class MultiFactorService {
   }) async {
     await _ref.read(progressController).executeWithProgress<void>(
           () => user.multiFactor.unenroll(
-            factorUid: multiFactorInfo.factorId,
+            // `multiFactorInfo`か`factorUid`のどちらかを指定すれば良い
+            multiFactorInfo: multiFactorInfo,
           ),
         );
   }
