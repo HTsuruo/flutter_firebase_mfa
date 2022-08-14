@@ -38,6 +38,7 @@ dependencies:
   go_router:
   google_sign_in:
   simple_logger:
+  touch_indicator:
   tsuruo_kit:
 
 dev_dependencies:
