@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_firebase_mfa/logger.dart';
 import 'package:flutter_firebase_mfa/main.dart';
 import 'package:flutter_firebase_mfa/multi_factor_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,6 +46,10 @@ class LoginPage extends ConsumerWidget {
                     );
               } on FirebaseAuthMultiFactorException catch (e) {
                 await ref.read(multiFactorProvider).challenge(e);
+                // ignore: avoid_catches_without_on_clauses
+              } catch (e) {
+                // 省略...
+                logger.warning(e);
               }
             },
           ),
