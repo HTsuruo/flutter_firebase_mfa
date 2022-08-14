@@ -78,7 +78,7 @@ class MultiFactorService {
           await user.multiFactor.enroll(
             PhoneMultiFactorGenerator.getAssertion(credential),
             // second factorの表示名を設定することも可能（どこで使うのかは不明）
-            // displayName: 'xxx'
+            displayName: 'MFA Tester',
           );
         } on FirebaseAuthException catch (e) {
           logger.warning(e);
