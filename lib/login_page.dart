@@ -20,7 +20,7 @@ class LoginPage extends ConsumerWidget {
         child: SizedBox(
           height: 44,
           child: SignInButton(
-            Buttons.Google,
+            Buttons.GoogleDark,
             onPressed: () async {
               final googleSignIn = GoogleSignIn(
                 // AndroidはclinetId指定が不要
