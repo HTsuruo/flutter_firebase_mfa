@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firebase_mfa/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 final userProvider = StreamProvider<User?>((ref) {
@@ -37,30 +39,62 @@ class _Body extends ConsumerWidget {
       'lastSignInTime': user.metadata.lastSignInTime.toString(),
       'providerId': user.providerData.first.providerId,
     };
-    return Column(
-      children: [
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: values.entries.toList().length,
-          itemBuilder: (context, index) {
-            final value = values.entries.toList()[index];
-            return _ListTile(
-              title: value.key,
-              value: value.value,
-            );
-          },
-          separatorBuilder: (context, index) => const Divider(),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            await ref.read(progressController).executeWithProgress(
-                  () => FirebaseAuth.instance.signOut(),
-                );
-          },
-          child: const Text('Sign out'),
-        )
-      ],
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          ...values.entries
+              .map(
+                (e) => _ListTile(
+                  title: e.key,
+                  value: e.value,
+                ),
+              )
+              .toList(),
+          const Divider(),
+          SwitchListTile(
+            value: false,
+            title: const Text('MFA'),
+            subtitle: const Text('Enrolling a second factor'),
+            onChanged: (value) async {
+              final session = await user.multiFactor.getSession();
+              const phoneNumber = '+818012341234';
+              await FirebaseAuth.instance.verifyPhoneNumber(
+                multiFactorSession: session,
+                phoneNumber: phoneNumber,
+                verificationCompleted: (_) {},
+                verificationFailed: (_) {},
+                codeAutoRetrievalTimeout: (_) {},
+                codeSent: (verificationId, resendToken) async {
+                  final smsCode = await getSmsCodeFromUser(context);
+                  if (smsCode != null) {
+                    final credential = PhoneAuthProvider.credential(
+                      verificationId: verificationId,
+                      smsCode: smsCode,
+                    );
+
+                    try {
+                      await user.multiFactor.enroll(
+                        PhoneMultiFactorGenerator.getAssertion(credential),
+                      );
+                    } on FirebaseAuthException catch (e) {
+                      logger.warning(e);
+                    }
+                  }
+                },
+              );
+            },
+          ),
+          const Gap(44),
+          ElevatedButton(
+            onPressed: () async {
+              await ref.read(progressController).executeWithProgress(
+                    () => FirebaseAuth.instance.signOut(),
+                  );
+            },
+            child: const Text('Sign out'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -89,4 +123,46 @@ class _ListTile extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<String?> getSmsCodeFromUser(BuildContext context) async {
+  String? smsCode;
+
+  // Update the UI - wait for the user to enter the SMS code
+  await showDialog<String>(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('SMS code:'),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Sign in'),
+          ),
+          OutlinedButton(
+            onPressed: () {
+              smsCode = null;
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+        content: Container(
+          padding: const EdgeInsets.all(20),
+          child: TextField(
+            onChanged: (value) {
+              smsCode = value;
+            },
+            textAlign: TextAlign.center,
+            autofocus: true,
+          ),
+        ),
+      );
+    },
+  );
+
+  return smsCode;
 }
