@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 final userProvider = StreamProvider<User?>((ref) {
+  // MFAの有効/無効の変更は`idTokenChanges`に流れてくるので`authStateChange`ではなくsupersetの`userChanges`を使う
   return FirebaseAuth.instance.userChanges();
 });
 
