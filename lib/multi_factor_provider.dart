@@ -82,6 +82,14 @@ class MultiFactorService {
           );
         } on FirebaseAuthException catch (e) {
           logger.warning(e);
+        } on PlatformException catch (e) {
+          // 認証コードが誤っていた場合
+          if (e.code == 'FirebaseAuthInvalidCredentialsException') {
+            _ref.read(scaffoldMessengerKey).currentState!.showMessage(
+                  // ignore: lines_longer_than_80_chars
+                  'The sms verification code used to create the phone auth credential is invalid.',
+                );
+          }
         }
       },
     );
@@ -104,7 +112,12 @@ class MultiFactorService {
       logger.warning(e);
       // センシティブリクエストの扱いなの再認証が必要な場合
       // E/flutter (21453): [ERROR:flutter/lib/ui/ui_dart_state.cc(198)] Unhandled Exception: PlatformException(FirebaseAuthRecentLoginRequiredException, com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request., Cause: null, Stacktrace: com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request.
-      if (e.code == 'FirebaseAuthRecentLoginRequiredException') {}
+      if (e.code == 'FirebaseAuthRecentLoginRequiredException') {
+        _ref.read(scaffoldMessengerKey).currentState!.showMessage(
+          '''
+This operation is sensitive and requires recent authentication. Log in again before retrying this request.''',
+        );
+      }
     }
   }
 

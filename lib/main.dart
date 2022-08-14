@@ -7,6 +7,7 @@ import 'package:flutter_firebase_mfa/router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:simple_logger/simple_logger.dart';
+import 'package:tsuruo_kit/providers/providers.dart';
 
 import 'logger.dart';
 
@@ -44,6 +45,7 @@ class App extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     return MaterialApp.router(
+      scaffoldMessengerKey: ref.watch(scaffoldMessengerKey),
       title: 'Flutter Firebase MFA',
       theme: ThemeData.from(
         useMaterial3: true,
@@ -55,6 +57,9 @@ class App extends ConsumerWidget {
             fontWeight: FontWeight.w600,
             color: Colors.black,
           ),
+        ),
+        snackBarTheme: const SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
         ),
       ),
       routeInformationProvider: router.routeInformationProvider,
