@@ -1,3 +1,4 @@
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -99,49 +100,20 @@ class MultiFactorService {
         );
   }
 
-  // See `firebase_auth` example app for a method of retrieving user's sms code:
-  // ref. https://github.com/firebase/flutterfire/blob/master/packages/firebase_auth/firebase_auth/example/lib/auth.dart#L591
   Future<String?> _getSmsCodeFromUser({
     required _MultiFactorUse usecase,
   }) async {
-    String? smsCode;
-
-    await showDialog<String>(
-      context: _navigator.context,
+    final inputs = await showTextInputDialog(
+      title: 'SMS Code',
+      message: 'Please enter the SMS code sent to your phone.',
       barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('SMS code:'),
-          actions: [
-            ElevatedButton(
-              onPressed: () {
-                _navigator.pop();
-              },
-              child: Text(usecase.label),
-            ),
-            OutlinedButton(
-              onPressed: () {
-                smsCode = null;
-                _navigator.pop();
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-          content: Container(
-            padding: const EdgeInsets.all(20),
-            child: TextField(
-              onChanged: (value) {
-                smsCode = value;
-              },
-              textAlign: TextAlign.center,
-              autofocus: true,
-            ),
-          ),
-        );
-      },
+      context: _navigator.context,
+      okLabel: usecase.label,
+      textFields: [
+        const DialogTextField(),
+      ],
     );
-
-    return smsCode;
+    return inputs?.firstOrNull;
   }
 }
 
