@@ -18,7 +18,7 @@ class MultiFactorService {
   NavigatorState get _navigator => _ref.read(routerProvider).navigator!;
 
   // サインイン時や再認証時のMFA Challenge
-  // MEMO(tsuruoka): 本来は`signInWithXXX`の一貫でやるべきだが、今回はわかり易さのために切り離した。
+  // MEMO(tsuruoka): 本来は`signInWithXXX`の一貫でやるべきだが、今回は分かり易さのために切り離した。
   Future<void> challenge(FirebaseAuthMultiFactorException e) async {
     final session = e.resolver.session;
     final firstHint = e.resolver.hints.firstOrNull;
@@ -47,6 +47,14 @@ class MultiFactorService {
           );
         } on FirebaseAuthException catch (e) {
           logger.warning(e);
+        } on PlatformException catch (e) {
+          // 認証コードが誤っていた場合
+          if (e.code == 'FirebaseAuthInvalidCredentialsException') {
+            _ref.read(scaffoldMessengerKey).currentState!.showMessage(
+                  // ignore: lines_longer_than_80_chars
+                  'The sms verification code used to create the phone auth credential is invalid.',
+                );
+          }
         }
       },
     );
