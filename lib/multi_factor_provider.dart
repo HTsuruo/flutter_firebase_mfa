@@ -76,11 +76,13 @@ class MultiFactorService {
           smsCode: smsCode,
         );
         try {
-          await user.multiFactor.enroll(
-            PhoneMultiFactorGenerator.getAssertion(credential),
-          );
           // 成功すると`idTokenChanges()`に変更が流れるはず
           //  Notifying id token listeners about user ( xxx ).
+          await user.multiFactor.enroll(
+            PhoneMultiFactorGenerator.getAssertion(credential),
+            // second factorの表示名を設定することも可能（どこで使うのかは不明）
+            // displayName: 'xxx'
+          );
         } on FirebaseAuthException catch (e) {
           logger.warning(e);
         }
