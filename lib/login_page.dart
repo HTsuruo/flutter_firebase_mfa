@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_firebase_mfa/main.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -22,7 +23,8 @@ class LoginPage extends ConsumerWidget {
             Buttons.Google,
             onPressed: () async {
               final googleSignIn = GoogleSignIn(
-                clientId: Platform.isIOS ? dotenv.env['CLIENT_ID'] : null,
+                clientId:
+                    Platform.isIOS ? dotenv.env[EnvKey.iosClientId] : null,
               );
               final account = await googleSignIn.signIn();
               final auth = await account?.authentication;

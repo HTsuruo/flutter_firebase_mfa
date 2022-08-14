@@ -19,7 +19,7 @@ Future<void> main() async {
     dotenv.load(),
   ]);
   assert(
-    dotenv.isEveryDefined(['CLIENT_ID']),
+    dotenv.isEveryDefined([EnvKey.iosClientId]),
     'Please set your `CLIENT_ID` for google_sign_in in `.env`',
   );
 
@@ -62,4 +62,8 @@ class App extends ConsumerWidget {
       routerDelegate: router.routerDelegate,
     );
   }
+}
+
+class EnvKey {
+  static const iosClientId = 'IOS_CLIENT_ID';
 }
