@@ -99,6 +99,7 @@ class MultiFactorService {
               multiFactorInfo: multiFactorInfo,
             ),
           );
+      // FirebaseAuthExceptionではなくPlatformExceptionで返ってくる
     } on PlatformException catch (e) {
       logger.warning(e);
       // センシティブリクエストの扱いなの再認証が必要な場合
