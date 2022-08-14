@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
 
-final signedInProvider = StreamProvider<User?>((ref) {
+final userProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
 });
 
@@ -12,7 +12,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(signedInProvider).value;
+    final user = ref.watch(userProvider).value;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Flutter Firebase MFA'),

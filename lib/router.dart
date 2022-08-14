@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_mfa/home_page.dart';
@@ -22,22 +20,17 @@ final routerProvider = Provider((ref) {
 // ref. https://github.com/lucavenir/go_router_riverpod/blob/master/lib/router.dart
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
-    _subscription = _ref.watch(signedInProvider.stream).listen((user) {
-      _user = user;
+    _ref.listen<User?>(userProvider.select((userAsync) => userAsync.value),
+        (previous, user) {
+      //不要な変更を間引く
+      if (previous == user) {
+        return;
+      }
       notifyListeners();
     });
   }
 
   final Ref _ref;
-  User? _user;
-  bool get signedIn => _user != null;
-  late StreamSubscription<void> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
-  }
 
   static const _home = '/';
   static const _login = '/login';
@@ -56,7 +49,7 @@ class RouterNotifier extends ChangeNotifier {
       ];
 
   String? _redirectLogic(GoRouterState state) {
-    final user = _ref.read(signedInProvider).valueOrNull;
+    final user = _ref.read(userProvider).valueOrNull;
     // 未認証時は`/login`へリダイレクト
     if (user == null) {
       return state.location == _login ? null : _login;
