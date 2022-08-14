@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_mfa/logger.dart';
@@ -13,6 +14,42 @@ class MultiFactorService {
 
   NavigatorState get _navigator => _ref.read(routerProvider).navigator!;
 
+  // サインイン時や再認証時のMFA Challenge
+  Future<void> challenge(FirebaseAuthMultiFactorException e) async {
+    final session = e.resolver.session;
+    final firstHint = e.resolver.hints.firstOrNull;
+    if (firstHint == null || firstHint is! PhoneMultiFactorInfo) {
+      return;
+    }
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      multiFactorSession: session,
+      multiFactorInfo: firstHint,
+      verificationCompleted: (_) {},
+      verificationFailed: (_) {},
+      codeAutoRetrievalTimeout: (_) {},
+      codeSent: (verificationId, resendToken) async {
+        final smsCode = await _getSmsCodeFromUser(
+          usecase: _MultiFactorUse.signIn,
+        );
+        if (smsCode == null) {
+          return;
+        }
+        final credential = PhoneAuthProvider.credential(
+          verificationId: verificationId,
+          smsCode: smsCode,
+        );
+
+        try {
+          await e.resolver.resolveSignIn(
+            PhoneMultiFactorGenerator.getAssertion(credential),
+          );
+        } on FirebaseAuthException catch (e) {
+          logger.warning(e);
+        }
+      },
+    );
+  }
+
   // MFAを有効化する
   Future<void> enroll({required User user}) async {
     final session = await user.multiFactor.getSession();
@@ -24,22 +61,24 @@ class MultiFactorService {
       verificationFailed: (_) {},
       codeAutoRetrievalTimeout: (_) {},
       codeSent: (verificationId, resendToken) async {
-        final smsCode = await _getSmsCodeFromUser();
-        if (smsCode != null) {
-          final credential = PhoneAuthProvider.credential(
-            verificationId: verificationId,
-            smsCode: smsCode,
+        final smsCode = await _getSmsCodeFromUser(
+          usecase: _MultiFactorUse.enroll,
+        );
+        if (smsCode == null) {
+          return;
+        }
+        final credential = PhoneAuthProvider.credential(
+          verificationId: verificationId,
+          smsCode: smsCode,
+        );
+        try {
+          await user.multiFactor.enroll(
+            PhoneMultiFactorGenerator.getAssertion(credential),
           );
-
-          try {
-            await user.multiFactor.enroll(
-              PhoneMultiFactorGenerator.getAssertion(credential),
-            );
-            // 成功すると`idTokenChanges()`に変更が流れるはず
-            //  Notifying id token listeners about user ( xxx ).
-          } on FirebaseAuthException catch (e) {
-            logger.warning(e);
-          }
+          // 成功すると`idTokenChanges()`に変更が流れるはず
+          //  Notifying id token listeners about user ( xxx ).
+        } on FirebaseAuthException catch (e) {
+          logger.warning(e);
         }
       },
     );
@@ -62,7 +101,9 @@ class MultiFactorService {
 
   // See `firebase_auth` example app for a method of retrieving user's sms code:
   // ref. https://github.com/firebase/flutterfire/blob/master/packages/firebase_auth/firebase_auth/example/lib/auth.dart#L591
-  Future<String?> _getSmsCodeFromUser() async {
+  Future<String?> _getSmsCodeFromUser({
+    required _MultiFactorUse usecase,
+  }) async {
     String? smsCode;
 
     await showDialog<String>(
@@ -76,7 +117,7 @@ class MultiFactorService {
               onPressed: () {
                 _navigator.pop();
               },
-              child: const Text('Enroll'),
+              child: Text(usecase.label),
             ),
             OutlinedButton(
               onPressed: () {
@@ -102,4 +143,13 @@ class MultiFactorService {
 
     return smsCode;
   }
+}
+
+enum _MultiFactorUse {
+  enroll(label: 'Enroll'),
+  signIn(label: 'Sign In'),
+  ;
+
+  const _MultiFactorUse({required this.label});
+  final String label;
 }
