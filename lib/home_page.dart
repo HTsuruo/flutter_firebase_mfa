@@ -17,11 +17,7 @@ class HomePage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Flutter Firebase MFA'),
       ),
-      body: user == null
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : _Body(user: user),
+      body: user == null ? const SizedBox.shrink() : _Body(user: user),
     );
   }
 }
