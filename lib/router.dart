@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_mfa/home_page.dart';
 import 'package:flutter_firebase_mfa/login_page.dart';
@@ -44,7 +43,18 @@ class RouterNotifier extends ChangeNotifier {
         GoRoute(
           name: 'login',
           path: _login,
-          builder: (context, state) => const LoginPage(),
+          // docs. https://gorouter.dev/transitions#custom-transitions
+          // ref. https://github.com/flutter/packages/blob/main/packages/go_router/example/lib/others/transitions.dart
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: const LoginPage(),
+            transitionsBuilder: (context, animation, _, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+          ),
         ),
       ];
 
