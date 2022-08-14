@@ -23,6 +23,8 @@ class LoginPage extends ConsumerWidget {
             Buttons.Google,
             onPressed: () async {
               final googleSignIn = GoogleSignIn(
+                // AndroidはclinetId指定が不要
+                // ref. https://github.com/flutter/flutter/issues/99135#issuecomment-1064706025
                 clientId:
                     Platform.isIOS ? dotenv.env[EnvKey.iosClientId] : null,
               );
