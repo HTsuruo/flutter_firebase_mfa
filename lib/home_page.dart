@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_firebase_mfa/logger.dart';
+import 'package:flutter_firebase_mfa/multi_factor_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
@@ -99,13 +99,13 @@ class _MultiFactorInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final multiFactor = ref.watch(_multiFactorInfoProvider).value;
-    final multiFactorEnabled = multiFactor != null;
+    final multiFactorInfo = ref.watch(_multiFactorInfoProvider).value;
+    final multiFactorEnabled = multiFactorInfo != null;
     final values = <String, String?>{
-      'displayName': multiFactor?.displayName,
-      'factorId': multiFactor?.factorId,
-      'enrollmentTimestamp': multiFactor?.enrollmentTimestamp.toString(),
-      'uid(second factor)': multiFactor?.uid,
+      'displayName': multiFactorInfo?.displayName,
+      'factorId': multiFactorInfo?.factorId,
+      'enrollmentTimestamp': multiFactorInfo?.enrollmentTimestamp.toString(),
+      'uid(second factor)': multiFactorInfo?.uid,
     };
     return Column(
       children: [
@@ -114,46 +114,12 @@ class _MultiFactorInfo extends ConsumerWidget {
           title: const Text('MFA'),
           subtitle: const Text('Enrolling a second factor'),
           onChanged: (_) async {
-            if (multiFactorEnabled) {
-              // MFAを解除する
-              // センシティブリクエスト扱いなので再認証が必要:
-              // E/flutter (21453): [ERROR:flutter/lib/ui/ui_dart_state.cc(198)] Unhandled Exception: PlatformException(FirebaseAuthRecentLoginRequiredException, com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request., Cause: null, Stacktrace: com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request.
-              await ref.read(progressController).executeWithProgress(
-                    () => user.multiFactor.unenroll(
-                      factorUid: multiFactor.factorId,
-                    ),
-                  );
-            } else {
-              // MFAを有効化する
-              final session = await user.multiFactor.getSession();
-              const phoneNumber = '+818012341234';
-              await FirebaseAuth.instance.verifyPhoneNumber(
-                multiFactorSession: session,
-                phoneNumber: phoneNumber,
-                verificationCompleted: (_) {},
-                verificationFailed: (_) {},
-                codeAutoRetrievalTimeout: (_) {},
-                codeSent: (verificationId, resendToken) async {
-                  final smsCode = await getSmsCodeFromUser(context);
-                  if (smsCode != null) {
-                    final credential = PhoneAuthProvider.credential(
-                      verificationId: verificationId,
-                      smsCode: smsCode,
-                    );
-
-                    try {
-                      await user.multiFactor.enroll(
-                        PhoneMultiFactorGenerator.getAssertion(credential),
-                      );
-                      // 成功すると`idTokenChanges()`に変更が流れるはず
-                      //  Notifying id token listeners about user ( xxx ).
-                    } on FirebaseAuthException catch (e) {
-                      logger.warning(e);
-                    }
-                  }
-                },
-              );
-            }
+            multiFactorEnabled
+                ? await ref.read(multiFactorProvider).unenroll(
+                      user: user,
+                      multiFactorInfo: multiFactorInfo,
+                    )
+                : await ref.read(multiFactorProvider).enroll(user: user);
           },
         ),
         ...values.entries
