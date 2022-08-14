@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_mfa/home_page.dart';
 import 'package:flutter_firebase_mfa/login_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:touch_indicator/touch_indicator.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 final routerProvider = Provider((ref) {
@@ -13,7 +15,9 @@ final routerProvider = Provider((ref) {
     refreshListenable: router,
     routes: router._routes,
     redirect: router._redirectLogic,
-    navigatorBuilder: (context, state, child) => ProgressHUD(child: child),
+    navigatorBuilder: (context, state, child) => TouchIndicator(
+      child: ProgressHUD(child: child),
+    ),
   );
 });
 
