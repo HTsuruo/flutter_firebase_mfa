@@ -16,6 +16,7 @@ class MultiFactorService {
   NavigatorState get _navigator => _ref.read(routerProvider).navigator!;
 
   // サインイン時や再認証時のMFA Challenge
+  // MEMO(tsuruoka): 本来は`signInWithXXX`の一貫でやるべきだが、今回はわかり易さのために切り離した。
   Future<void> challenge(FirebaseAuthMultiFactorException e) async {
     final session = e.resolver.session;
     final firstHint = e.resolver.hints.firstOrNull;
@@ -86,13 +87,13 @@ class MultiFactorService {
   }
 
   // MFAを解除する
-  // センシティブリクエスト扱いなので再認証が必要:
+  // TODO(tsuruoka): センシティブリクエストの扱いなので本来なら再認証やその案内が必要
   // E/flutter (21453): [ERROR:flutter/lib/ui/ui_dart_state.cc(198)] Unhandled Exception: PlatformException(FirebaseAuthRecentLoginRequiredException, com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request., Cause: null, Stacktrace: com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request.
   Future<void> unenroll({
     required User user,
     required MultiFactorInfo multiFactorInfo,
   }) async {
-    await _ref.read(progressController).executeWithProgress<void>(
+    await _ref.read(progressController).executeWithProgress(
           () => user.multiFactor.unenroll(
             // `multiFactorInfo`か`factorUid`のどちらかを指定すれば良い
             multiFactorInfo: multiFactorInfo,
