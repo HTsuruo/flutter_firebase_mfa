@@ -5,8 +5,8 @@ import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
 
-class SignInPage extends ConsumerWidget {
-  const SignInPage({super.key});
+class LoginPage extends ConsumerWidget {
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

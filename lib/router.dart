@@ -3,9 +3,10 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_firebase_mfa/home_page.dart';
-import 'package:flutter_firebase_mfa/sign_in_page.dart';
+import 'package:flutter_firebase_mfa/login_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 final routerProvider = Provider((ref) {
   final router = RouterNotifier(ref);
@@ -14,6 +15,7 @@ final routerProvider = Provider((ref) {
     refreshListenable: router,
     routes: router._routes,
     redirect: router._redirectLogic,
+    navigatorBuilder: (context, state, child) => ProgressHUD(child: child),
   );
 });
 
@@ -37,25 +39,32 @@ class RouterNotifier extends ChangeNotifier {
     super.dispose();
   }
 
-  static const _signInPath = '/sign_in';
+  static const _home = '/';
+  static const _login = '/login';
 
   List<GoRoute> get _routes => [
         GoRoute(
           name: 'home',
-          path: '/',
+          path: _home,
           builder: (context, state) => const HomePage(),
         ),
         GoRoute(
-          name: 'signIn',
-          path: _signInPath,
-          builder: (context, state) => const SignInPage(),
+          name: 'login',
+          path: _login,
+          builder: (context, state) => const LoginPage(),
         ),
       ];
 
   String? _redirectLogic(GoRouterState state) {
     final user = _ref.read(signedInProvider).valueOrNull;
+    // 未認証時は`/login`へリダイレクト
     if (user == null) {
-      return state.location == _signInPath ? null : _signInPath;
+      return state.location == _login ? null : _login;
+    }
+
+    // 認証時で`/login`のままだったら`/home`へリダイレクト
+    if (state.location == _login) {
+      return _home;
     }
     return null;
   }
