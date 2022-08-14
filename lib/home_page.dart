@@ -26,9 +26,9 @@ class HomePage extends ConsumerWidget {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  _BasicAuthInfo(user: user),
+                  const _BasicAuthInfo(),
                   const Divider(),
-                  _MultiFactorInfo(user: user),
+                  const _MultiFactorInfo(),
                   const Divider(),
                   const Gap(44),
                   ElevatedButton(
@@ -52,12 +52,12 @@ final _idTokenProvider = FutureProvider<String?>((ref) async {
 });
 
 class _BasicAuthInfo extends ConsumerWidget {
-  const _BasicAuthInfo({required this.user});
-
-  final User user;
+  const _BasicAuthInfo();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider).value!;
+    final idToken = ref.watch(_idTokenProvider).value;
     final values = <String, String?>{
       'uid': user.uid,
       // 'displayName': user.displayName,
@@ -65,7 +65,7 @@ class _BasicAuthInfo extends ConsumerWidget {
       'emailVerified': user.emailVerified.toString(),
       'lastSignInTime': user.metadata.lastSignInTime.toString(),
       'providerId': user.providerData.first.providerId,
-      'idToken': ref.watch(_idTokenProvider).valueOrNull,
+      'idToken': idToken,
     };
     return Column(
       children: values.entries
@@ -94,9 +94,7 @@ final _multiFactorInfoProvider = FutureProvider<MultiFactorInfo?>((ref) async {
 });
 
 class _MultiFactorInfo extends ConsumerWidget {
-  const _MultiFactorInfo({required this.user});
-
-  final User user;
+  const _MultiFactorInfo();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -117,10 +115,9 @@ class _MultiFactorInfo extends ConsumerWidget {
           onChanged: (_) async {
             multiFactorEnabled
                 ? await ref.read(multiFactorProvider).unenroll(
-                      user: user,
                       multiFactorInfo: multiFactorInfo,
                     )
-                : await ref.read(multiFactorProvider).enroll(user: user);
+                : await ref.read(multiFactorProvider).enroll();
           },
         ),
         ...values.entries

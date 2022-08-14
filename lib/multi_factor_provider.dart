@@ -2,6 +2,7 @@ import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_firebase_mfa/home_page.dart';
 import 'package:flutter_firebase_mfa/logger.dart';
 import 'package:flutter_firebase_mfa/router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,7 +54,8 @@ class MultiFactorService {
   }
 
   // MFAを有効化する
-  Future<void> enroll({required User user}) async {
+  Future<void> enroll() async {
+    final user = _ref.read(userProvider).value!;
     final session = await user.multiFactor.getSession();
     const phoneNumber = '+818012341234';
     await FirebaseAuth.instance.verifyPhoneNumber(
@@ -87,12 +89,12 @@ class MultiFactorService {
   }
 
   // MFAを解除する
-  // TODO(tsuruoka): センシティブリクエストの扱いなので本来なら再認証やその案内が必要
+  // MEMO(tsuruoka): センシティブリクエストの扱いなので本来なら再認証やその案内が必要
   // E/flutter (21453): [ERROR:flutter/lib/ui/ui_dart_state.cc(198)] Unhandled Exception: PlatformException(FirebaseAuthRecentLoginRequiredException, com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request., Cause: null, Stacktrace: com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request.
   Future<void> unenroll({
-    required User user,
     required MultiFactorInfo multiFactorInfo,
   }) async {
+    final user = _ref.read(userProvider).value!;
     await _ref.read(progressController).executeWithProgress(
           () => user.multiFactor.unenroll(
             // `multiFactorInfo`か`factorUid`のどちらかを指定すれば良い
