@@ -25,7 +25,12 @@ class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
     _ref.listen<User?>(
       userProvider.select((userAsync) => userAsync.value),
-      (_, __) => notifyListeners(),
+      (previous, user) {
+        // listen対象が`userChanges`なので、ユーザーが切り替わった場合のみnotifyするよう間引く
+        if (previous?.uid != user?.uid) {
+          notifyListeners();
+        }
+      },
     );
   }
 
