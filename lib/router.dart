@@ -6,46 +6,20 @@ import 'package:flutter_firebase_mfa/home_page.dart';
 import 'package:flutter_firebase_mfa/sign_in_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:tsuruo_kit/tsuruo_kit.dart';
 
-const _signInPath = '/sign_in';
-
-final routerProvider = Provider(
-  (ref) => GoRouter(
+final routerProvider = Provider((ref) {
+  final router = RouterNotifier(ref);
+  return GoRouter(
     debugLogDiagnostics: true,
-    routes: [
-      GoRoute(
-        name: 'home',
-        path: '/',
-        builder: (context, state) => const HomePage(),
-      ),
-      GoRoute(
-        name: 'signIn',
-        path: _signInPath,
-        builder: (context, state) => const SignInPage(),
-      ),
-    ],
-    redirect: (state) {
-      final signedIn = ref.read(_authRefreshListener).signedIn;
-      if (!signedIn) {
-        return state.subloc == _signInPath ? null : _signInPath;
-      }
-      return null;
-    },
-    // ref. https://github.com/rrousselGit/riverpod/issues/884
-    refreshListenable: ref.watch(_authRefreshListener),
-    navigatorBuilder: (context, state, child) => ProgressHUD(
-      child: child,
-    ),
-  ),
-);
+    refreshListenable: router,
+    routes: router._routes,
+    redirect: router._redirectLogic,
+  );
+});
 
-final _authRefreshListener = ChangeNotifierProvider<AuthNotifier>(
-  AuthNotifier.new,
-);
-
-class AuthNotifier extends ChangeNotifier {
-  AuthNotifier(this._ref) {
+// ref. https://github.com/lucavenir/go_router_riverpod/blob/master/lib/router.dart
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(this._ref) {
     _subscription = _ref.watch(signedInProvider.stream).listen((user) {
       _user = user;
       notifyListeners();
@@ -61,5 +35,28 @@ class AuthNotifier extends ChangeNotifier {
   void dispose() {
     _subscription.cancel();
     super.dispose();
+  }
+
+  static const _signInPath = '/sign_in';
+
+  List<GoRoute> get _routes => [
+        GoRoute(
+          name: 'home',
+          path: '/',
+          builder: (context, state) => const HomePage(),
+        ),
+        GoRoute(
+          name: 'signIn',
+          path: _signInPath,
+          builder: (context, state) => const SignInPage(),
+        ),
+      ];
+
+  String? _redirectLogic(GoRouterState state) {
+    final user = _ref.read(signedInProvider).valueOrNull;
+    if (user == null) {
+      return state.location == _signInPath ? null : _signInPath;
+    }
+    return null;
   }
 }
