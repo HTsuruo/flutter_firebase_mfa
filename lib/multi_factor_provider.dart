@@ -32,30 +32,15 @@ class MultiFactorService {
       verificationFailed: (_) {},
       codeAutoRetrievalTimeout: (_) {},
       codeSent: (verificationId, resendToken) async {
-        final smsCode = await _getSmsCodeFromUser();
-        if (smsCode == null) {
-          return;
-        }
-        final credential = PhoneAuthProvider.credential(
-          verificationId: verificationId,
-          smsCode: smsCode,
+        await _verifySMSCode(
+          verificationId,
+          resendToken,
+          f: (credential, _) async {
+            await e.resolver.resolveSignIn(
+              PhoneMultiFactorGenerator.getAssertion(credential),
+            );
+          },
         );
-
-        try {
-          await e.resolver.resolveSignIn(
-            PhoneMultiFactorGenerator.getAssertion(credential),
-          );
-        } on FirebaseAuthException catch (e) {
-          logger.warning(e);
-        } on PlatformException catch (e) {
-          // 認証コードが誤っていた場合
-          if (e.code == 'FirebaseAuthInvalidCredentialsException') {
-            _ref.read(scaffoldMessengerKey).currentState!.showMessage(
-                  // ignore: lines_longer_than_80_chars
-                  'The sms verification code used to create the phone auth credential is invalid.',
-                );
-          }
-        }
       },
     );
   }
@@ -72,33 +57,17 @@ class MultiFactorService {
       verificationFailed: (_) {},
       codeAutoRetrievalTimeout: (_) {},
       codeSent: (verificationId, resendToken) async {
-        final smsCode = await _getSmsCodeFromUser();
-        if (smsCode == null) {
-          return;
-        }
-        final credential = PhoneAuthProvider.credential(
-          verificationId: verificationId,
-          smsCode: smsCode,
+        await _verifySMSCode(
+          verificationId,
+          resendToken,
+          f: (credential, displayName) async {
+            await user.multiFactor.enroll(
+              PhoneMultiFactorGenerator.getAssertion(credential),
+              // second factorの表示名を設定することも可能
+              displayName: displayName,
+            );
+          },
         );
-        try {
-          // 成功すると`idTokenChanges()`に変更が流れるはず
-          //  Notifying id token listeners about user ( xxx ).
-          await user.multiFactor.enroll(
-            PhoneMultiFactorGenerator.getAssertion(credential),
-            // second factorの表示名を設定することも可能（どこで使うのかは不明）
-            displayName: 'MFA Tester',
-          );
-        } on FirebaseAuthException catch (e) {
-          logger.warning(e);
-        } on PlatformException catch (e) {
-          // 認証コードが誤っていた場合
-          if (e.code == 'FirebaseAuthInvalidCredentialsException') {
-            _ref.read(scaffoldMessengerKey).currentState!.showMessage(
-                  // ignore: lines_longer_than_80_chars
-                  'The sms verification code used to create the phone auth credential is invalid.',
-                );
-          }
-        }
       },
     );
   }
@@ -119,12 +88,42 @@ class MultiFactorService {
     } on PlatformException catch (e) {
       logger.warning(e);
       // センシティブリクエストの扱いなの再認証が必要な場合
-      // E/flutter (21453): [ERROR:flutter/lib/ui/ui_dart_state.cc(198)] Unhandled Exception: PlatformException(FirebaseAuthRecentLoginRequiredException, com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request., Cause: null, Stacktrace: com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException: This operation is sensitive and requires recent authentication. Log in again before retrying this request.
       if (e.code == 'FirebaseAuthRecentLoginRequiredException') {
         _ref.read(scaffoldMessengerKey).currentState!.showMessage(
           '''
 This operation is sensitive and requires recent authentication. Log in again before retrying this request.''',
         );
+      }
+    }
+  }
+
+  // SMS認証コードを検証する処理
+  // 認証時と登録時で利用するメソッドが異なる（Userクラスやリゾルバクラス）ので、
+  // enroll部分の処理のみ外から受け渡し、その他共通部分はここにまとめた。
+  Future<void> _verifySMSCode(
+    String verificationId,
+    int? forceResendingToken, {
+    required PhoneCodeVerify f,
+  }) async {
+    final smsCode = await _getSmsCodeFromUser();
+    if (smsCode == null) {
+      return;
+    }
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    try {
+      await f.call(credential, 'MFA Tester');
+    } on FirebaseAuthException catch (e) {
+      logger.warning(e);
+    } on PlatformException catch (e) {
+      // 認証コードが誤っていた場合
+      if (e.code == 'FirebaseAuthInvalidCredentialsException') {
+        _ref.read(scaffoldMessengerKey).currentState!.showMessage(
+              // ignore: lines_longer_than_80_chars
+              'The sms verification code used to create the phone auth credential is invalid.',
+            );
       }
     }
   }
@@ -142,3 +141,8 @@ This operation is sensitive and requires recent authentication. Log in again bef
     return inputs?.firstOrNull;
   }
 }
+
+typedef PhoneCodeVerify = Future<void> Function(
+  PhoneAuthCredential credential,
+  String? displayName,
+);
