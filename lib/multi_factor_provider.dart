@@ -20,7 +20,6 @@ class MultiFactorService {
   NavigatorState get _navigator => _ref.read(routerProvider).navigator!;
 
   // サインイン時や再認証時のMFA Challenge
-  // MEMO(tsuruoka): 本来は`signInWithXXX`の一貫でやるべきだが、今回は分かり易さのために切り離した。
   Future<void> challenge(FirebaseAuthMultiFactorException e) async {
     final session = e.resolver.session;
     final firstHint = e.resolver.hints.firstOrNull;
