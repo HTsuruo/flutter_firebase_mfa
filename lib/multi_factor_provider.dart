@@ -15,6 +15,8 @@ class MultiFactorService {
   const MultiFactorService(this._ref);
   final Ref _ref;
 
+  static const _testPhoneNumber = '+818012341234';
+
   NavigatorState get _navigator => _ref.read(routerProvider).navigator!;
 
   // サインイン時や再認証時のMFA Challenge
@@ -49,10 +51,9 @@ class MultiFactorService {
   Future<void> enroll() async {
     final user = _ref.read(userProvider).value!;
     final session = await user.multiFactor.getSession();
-    const phoneNumber = '+818012341234';
     await FirebaseAuth.instance.verifyPhoneNumber(
       multiFactorSession: session,
-      phoneNumber: phoneNumber,
+      phoneNumber: _testPhoneNumber,
       verificationCompleted: (_) {},
       verificationFailed: (_) {},
       codeAutoRetrievalTimeout: (_) {},
