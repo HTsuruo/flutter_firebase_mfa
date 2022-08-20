@@ -131,7 +131,6 @@ class _MultiFactorInfo extends ConsumerWidget {
                 child: _Row(
                   title: e.key,
                   value: e.value,
-                  enableHighlight: true,
                 ),
               ),
             )
@@ -145,12 +144,10 @@ class _Row extends StatelessWidget {
   const _Row({
     required this.title,
     required this.value,
-    this.enableHighlight = false,
   });
 
   final String title;
   final String? value;
-  final bool enableHighlight;
 
   @override
   Widget build(BuildContext context) {
@@ -164,8 +161,8 @@ class _Row extends StatelessWidget {
           child: Text(title),
         ),
         Expanded(
-          child: SmoothHighlight(
-            enabled: enableHighlight,
+          child: ValueChangeHighlight(
+            value: value,
             highlightColor: Colors.yellow,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(

@@ -369,7 +369,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "1429ef107e232f35f170be9c48b040d940d0f37d"
+      resolved-ref: "0bf6924f7e3cce105f5ae561f8da8dc8debc1b90"
       url: "https://github.com/HTsuruo/smooth_highlight"
     source: git
     version: "0.0.1"
