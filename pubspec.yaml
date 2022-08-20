@@ -41,6 +41,9 @@ dependencies:
   go_router:
   google_sign_in:
   simple_logger:
+  smooth_highlight:
+    git:
+     url: https://github.com/HTsuruo/smooth_highlight
   touch_indicator:
   tsuruo_kit:
 

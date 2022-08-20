@@ -364,6 +364,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  smooth_highlight:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "2ba0e51d7200165e12097c06dd5647b60042cff5"
+      url: "https://github.com/HTsuruo/smooth_highlight"
+    source: git
+    version: "0.0.1"
   source_span:
     dependency: transitive
     description:

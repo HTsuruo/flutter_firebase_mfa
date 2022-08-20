@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_firebase_mfa/multi_factor_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:smooth_highlight/smooth_highlight.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 final userProvider = StreamProvider<User?>((ref) {
@@ -130,6 +131,7 @@ class _MultiFactorInfo extends ConsumerWidget {
                 child: _Row(
                   title: e.key,
                   value: e.value,
+                  enableHighlight: true,
                 ),
               ),
             )
@@ -143,10 +145,12 @@ class _Row extends StatelessWidget {
   const _Row({
     required this.title,
     required this.value,
+    this.enableHighlight = false,
   });
 
   final String title;
   final String? value;
+  final bool enableHighlight;
 
   @override
   Widget build(BuildContext context) {
@@ -160,15 +164,20 @@ class _Row extends StatelessWidget {
           child: Text(title),
         ),
         Expanded(
-          child: Text(
-            nullOrEmpty ? '---' : value!,
-            style: theme.textTheme.bodyText2!.copyWith(
-              color: nullOrEmpty ? theme.disabledColor : colorScheme.primary,
-              fontWeight: FontWeight.bold,
+          child: SmoothHighlight(
+            enabled: enableHighlight,
+            highlightColor: Colors.yellow,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              nullOrEmpty ? '---' : value!,
+              style: theme.textTheme.bodyText2!.copyWith(
+                color: nullOrEmpty ? theme.disabledColor : colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-            textAlign: TextAlign.right,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
