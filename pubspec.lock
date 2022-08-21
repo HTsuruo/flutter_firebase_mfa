@@ -367,9 +367,11 @@ packages:
   smooth_highlight:
     dependency: "direct main"
     description:
-      name: smooth_highlight
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "91e3727f6bcca65e3f9cc637ff1bf54e9083543d"
+      url: "https://github.com/HTsuruo/smooth_highlight"
+    source: git
     version: "0.0.4"
   source_span:
     dependency: transitive
