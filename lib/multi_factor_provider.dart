@@ -1,13 +1,19 @@
+import 'dart:io';
+
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_firebase_mfa/home_page.dart';
 import 'package:flutter_firebase_mfa/logger.dart';
 import 'package:flutter_firebase_mfa/router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
+
+import 'main.dart';
 
 final multiFactorProvider = Provider(MultiFactorService.new);
 
@@ -19,8 +25,48 @@ class MultiFactorService {
 
   NavigatorState get _navigator => _ref.read(routerProvider).navigator!;
 
+  Future<void> signInWithGoogle() => _authenticateWithGoogle(
+        f: (credential) =>
+            FirebaseAuth.instance.signInWithCredential(credential),
+      );
+
+  Future<void> _reAuth() => _authenticateWithGoogle(
+        f: _ref.read(userProvider).value!.reauthenticateWithCredential,
+      );
+
+  Future<void> _authenticateWithGoogle({
+    required Future<void> Function(OAuthCredential credential) f,
+  }) async {
+    final googleSignIn = GoogleSignIn(
+      // AndroidはclientId指定が不要
+      // ref. https://github.com/flutter/flutter/issues/99135#issuecomment-1064706025
+      clientId: Platform.isIOS ? dotenv.env[EnvKey.iosClientId] : null,
+    );
+    final account = await googleSignIn.signIn();
+    final auth = await account?.authentication;
+    if (auth == null) {
+      return;
+    }
+    try {
+      await _ref.read(progressController).executeWithProgress(
+            () => f(
+              GoogleAuthProvider.credential(
+                idToken: auth.idToken,
+                accessToken: auth.accessToken,
+              ),
+            ),
+          );
+    } on FirebaseAuthMultiFactorException catch (e) {
+      await _ref.read(multiFactorProvider)._challenge(e);
+      // ignore: avoid_catches_without_on_clauses
+    } catch (e) {
+      // 省略...
+      logger.warning(e);
+    }
+  }
+
   // サインイン時や再認証時のMFA Challenge
-  Future<void> challenge(FirebaseAuthMultiFactorException e) async {
+  Future<void> _challenge(FirebaseAuthMultiFactorException e) async {
     final session = e.resolver.session;
     final firstHint = e.resolver.hints.firstOrNull;
     if (firstHint == null || firstHint is! PhoneMultiFactorInfo) {
@@ -89,10 +135,15 @@ class MultiFactorService {
       logger.warning(e);
       // センシティブリクエストの扱いなの再認証が必要な場合
       if (e.code == 'FirebaseAuthRecentLoginRequiredException') {
-        _ref.read(scaffoldMessengerKey).currentState!.showMessage(
-          '''
+        final res = await showOkCancelAlertDialog(
+          context: _navigator.context,
+          title: 'Required ReAuthentication',
+          message: '''
 This operation is sensitive and requires recent authentication. Log in again before retrying this request.''',
         );
+        if (res == OkCancelResult.ok) {
+          await _reAuth();
+        }
       }
     }
   }
