@@ -24,18 +24,22 @@ class MultiFactorService {
   static const _testPhoneNumber = '+818012341234';
 
   NavigatorState get _navigator => _ref.read(routerProvider).navigator!;
+  User get _user => _ref.read(userProvider).value!;
 
   Future<void> signInWithGoogle() => _authenticateWithGoogle(
         f: (credential) =>
             FirebaseAuth.instance.signInWithCredential(credential),
       );
 
-  Future<void> _reAuth() => _authenticateWithGoogle(
-        f: _ref.read(userProvider).value!.reauthenticateWithCredential,
-      );
+  Future<void> _reAuth() async {
+    final credential = await _authenticateWithGoogle<UserCredential>(
+      f: _user.reauthenticateWithCredential,
+    );
+    logger.fine('credential: ${credential?.user}');
+  }
 
-  Future<void> _authenticateWithGoogle({
-    required Future<void> Function(OAuthCredential credential) f,
+  Future<T?> _authenticateWithGoogle<T>({
+    required Future<T> Function(OAuthCredential credential) f,
   }) async {
     final googleSignIn = GoogleSignIn(
       // AndroidはclientId指定が不要
@@ -45,10 +49,10 @@ class MultiFactorService {
     final account = await googleSignIn.signIn();
     final auth = await account?.authentication;
     if (auth == null) {
-      return;
+      return null;
     }
     try {
-      await _ref.read(progressController).executeWithProgress(
+      return await _ref.read(progressController).executeWithProgress<T>(
             () => f(
               GoogleAuthProvider.credential(
                 idToken: auth.idToken,
@@ -57,12 +61,20 @@ class MultiFactorService {
             ),
           );
     } on FirebaseAuthMultiFactorException catch (e) {
-      await _ref.read(multiFactorProvider)._challenge(e);
+      await _challenge(e);
+    } on FirebaseAuthException catch (e) {
+      logger.warning(e);
+      // signInWith系の時は期待通り`FirebaseAuthMultiFactorException`で返ってくるが、
+      // reAuthの時は`FirebaseAuthException`で返ってきてしまうので暫定措置。
+      if (e.code == 'second-factor-required') {
+        // TODO(tsuruoka): 二要素認証
+      }
       // ignore: avoid_catches_without_on_clauses
     } catch (e) {
       // 省略...
       logger.warning(e);
     }
+    return null;
   }
 
   // サインイン時や再認証時のMFA Challenge
@@ -94,8 +106,7 @@ class MultiFactorService {
 
   // MFAを有効化する
   Future<void> enroll() async {
-    final user = _ref.read(userProvider).value!;
-    final session = await user.multiFactor.getSession();
+    final session = await _user.multiFactor.getSession();
     await FirebaseAuth.instance.verifyPhoneNumber(
       multiFactorSession: session,
       phoneNumber: _testPhoneNumber,
@@ -107,7 +118,7 @@ class MultiFactorService {
           verificationId,
           resendToken,
           f: (credential, displayName) async {
-            await user.multiFactor.enroll(
+            await _user.multiFactor.enroll(
               PhoneMultiFactorGenerator.getAssertion(credential),
               // second factorの表示名を設定することも可能
               displayName: displayName,
@@ -123,9 +134,8 @@ class MultiFactorService {
     required MultiFactorInfo multiFactorInfo,
   }) async {
     try {
-      final user = _ref.read(userProvider).value!;
       await _ref.read(progressController).executeWithProgress(
-            () => user.multiFactor.unenroll(
+            () => _user.multiFactor.unenroll(
               // `multiFactorInfo`か`factorUid`のどちらかを指定すれば良い
               multiFactorInfo: multiFactorInfo,
             ),
