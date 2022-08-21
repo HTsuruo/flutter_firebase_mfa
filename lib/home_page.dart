@@ -115,10 +115,10 @@ class _MultiFactorInfo extends ConsumerWidget {
           subtitle: const Text('Enrolling a second factor'),
           onChanged: (_) async {
             multiFactorEnabled
-                ? await ref.read(multiFactorProvider).unenroll(
+                ? await ref.read(authProvider).unenroll(
                       multiFactorInfo: multiFactorInfo,
                     )
-                : await ref.read(multiFactorProvider).enroll();
+                : await ref.read(authProvider).enroll();
           },
         ),
         ...values.entries

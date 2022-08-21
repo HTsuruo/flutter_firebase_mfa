@@ -15,7 +15,7 @@ class LoginPage extends ConsumerWidget {
           height: 44,
           child: SignInButton(
             Buttons.GoogleDark,
-            onPressed: () => ref.read(multiFactorProvider).signInWithGoogle(),
+            onPressed: () => ref.read(authProvider).signInWithGoogle(),
           ),
         ),
       ),

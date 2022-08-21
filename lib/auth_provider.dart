@@ -15,10 +15,10 @@ import 'package:tsuruo_kit/tsuruo_kit.dart';
 
 import 'main.dart';
 
-final multiFactorProvider = Provider(MultiFactorService.new);
+final authProvider = Provider(Authenticator.new);
 
-class MultiFactorService {
-  const MultiFactorService(this._ref);
+class Authenticator {
+  const Authenticator(this._ref);
   final Ref _ref;
 
   static const _testPhoneNumber = '+818012341234';
