@@ -288,7 +288,7 @@ packages:
       name: macos_ui
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.7.3"
+    version: "1.7.4"
   matcher:
     dependency: transitive
     description:
@@ -370,7 +370,7 @@ packages:
       name: smooth_highlight
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.2"
+    version: "0.0.4"
   source_span:
     dependency: transitive
     description:
