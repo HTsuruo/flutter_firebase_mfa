@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_firebase_mfa/multi_factor_provider.dart';
+import 'package:flutter_firebase_mfa/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 
@@ -15,7 +15,7 @@ class LoginPage extends ConsumerWidget {
           height: 44,
           child: SignInButton(
             Buttons.GoogleDark,
-            onPressed: () => ref.read(authProvider).signInWithGoogle(),
+            onPressed: () => ref.read(authProvider).signIn(),
           ),
         ),
       ),

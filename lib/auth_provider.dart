@@ -26,12 +26,12 @@ class Authenticator {
   NavigatorState get _navigator => _ref.read(routerProvider).navigator!;
   User get _user => _ref.read(userProvider).value!;
 
-  Future<void> signInWithGoogle() => _authenticateWithGoogle(
+  Future<void> signIn() => _authenticateWithGoogle(
         f: (credential) =>
             FirebaseAuth.instance.signInWithCredential(credential),
       );
 
-  Future<void> _reAuth() async {
+  Future<void> _reauthenticate() async {
     final credential = await _authenticateWithGoogle<UserCredential>(
       f: _user.reauthenticateWithCredential,
     );
@@ -152,7 +152,7 @@ class Authenticator {
 This operation is sensitive and requires recent authentication. Log in again before retrying this request.''',
         );
         if (res == OkCancelResult.ok) {
-          await _reAuth();
+          await _reauthenticate();
         }
       }
     }
