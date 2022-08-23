@@ -1,11 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_firebase_mfa/multi_factor_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:smooth_highlight/smooth_highlight.dart';
 import 'package:tsuruo_kit/tsuruo_kit.dart';
+
+import 'auth_provider.dart';
 
 final userProvider = StreamProvider<User?>((ref) {
   // MFAの有効/無効の変更を受けたいので`authStateChange`ではなくsupersetの`userChanges`を使う
